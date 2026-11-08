@@ -9,7 +9,7 @@ A curated collection of interview questions and answers covering artificial inte
 | Category | Link | Description |
 |----------|------|-------------|
 | [Comprehensive AI Question Bank](./AI-Question-Bank-Answered.md) | [Answered Bank](./AI-Question-Bank-Answered.md) | 923 answered questions covering AI, LLMs, RAG, agentic workflows, safety, and production |
-| [FDE & IML](./AI-ML-RAG-IML.md) | [Unique Supplemental Questions](./AI-ML-RAG-IML.md) | Distinct questions on Forward Deployed Engineering, customer integration, and measuring outcomes |
+| [FDE & IML](./AI-ML-RAG-IML.md) | [Unique Supplemental Questions](./AI-ML-RAG-IML.md) | Distinct FDE questions on discovery, delivery, security, pilots, incidents, adoption, and handoff |
 | [Core Concepts](./00-core-concepts/README.md) | [README](./00-core-concepts/README.md) | Foundational agentic AI theory, agent components, and autonomy levels |
 | [Agent Architecture](./01-agent-architecture/README.md) | [README](./01-agent-architecture/README.md) | Design patterns, single-agent, hierarchical, and swarm architectures |
 | [Frameworks & Tools](./02-frameworks-and-tools/README.md) | [README](./02-frameworks-and-tools/README.md) | LangChain, LangGraph, AutoGen, CrewAI, OpenAI Assistants, and more |
