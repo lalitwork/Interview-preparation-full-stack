@@ -1,13 +1,15 @@
 [⬅ Back](../README.md)
 
-# Agentic AI Interview Questions
+# AI, ML, RAG, and Agentic AI Interview Questions
 
-A curated collection of interview questions and answers covering agentic AI, autonomous agents, multi-agent systems, agentic frameworks, and AI agent architecture.
+A curated collection of interview questions and answers covering artificial intelligence, machine learning, RAG, autonomous agents, multi-agent systems, and agentic frameworks. The comprehensive bank is the canonical source for broad AI topics; the FDE supplemental guide retains only distinct customer-delivery questions from the merged collection.
 
 ## Table of Contents
 
 | Category | Link | Description |
 |----------|------|-------------|
+| [Comprehensive AI Question Bank](./AI-Question-Bank-Answered.md) | [Answered Bank](./AI-Question-Bank-Answered.md) | 923 answered questions covering AI, LLMs, RAG, agentic workflows, safety, and production |
+| [FDE & IML](./AI-ML-RAG-IML.md) | [Unique Supplemental Questions](./AI-ML-RAG-IML.md) | Distinct questions on Forward Deployed Engineering, customer integration, and measuring outcomes |
 | [Core Concepts](./00-core-concepts/README.md) | [README](./00-core-concepts/README.md) | Foundational agentic AI theory, agent components, and autonomy levels |
 | [Agent Architecture](./01-agent-architecture/README.md) | [README](./01-agent-architecture/README.md) | Design patterns, single-agent, hierarchical, and swarm architectures |
 | [Frameworks & Tools](./02-frameworks-and-tools/README.md) | [README](./02-frameworks-and-tools/README.md) | LangChain, LangGraph, AutoGen, CrewAI, OpenAI Assistants, and more |

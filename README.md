@@ -10,7 +10,7 @@ This repository aggregates curated learning materials, interview Q&A, coding cha
 
 | Folder | Description |
 |--------|-------------|
-| [ai-ml-rag-agentic-interview-prep](./ai-ml-rag-agentic-interview-prep/README.md) | Unified AI, machine learning, RAG, agentic systems, and interview preparation |
+| [agentic-interview-questions](./agentic-interview-questions/README.md) | Unified AI, machine learning, RAG, agentic systems, and interview preparation |
 | [angular-interview-questions](./angular-interview-questions/README.md) | Angular interview questions and answers with code examples |
 | [dirty-hands-with-code](./dirty-hands-with-code/README.md) | Hands-on coding exercises focused on implementation and edge cases |
 | [docker-cheat-sheet](./docker-cheat-sheet/README.md) | Quick reference guide for Docker commands and concepts |
