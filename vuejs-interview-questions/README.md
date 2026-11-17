@@ -251,6 +251,7 @@ List of 300 VueJS Interview Questions
 | 229 | [How to use composition API in Vue2.0?](#how-to-use-composition-api-in-vue2.0)                                                                                 |
 | 230 | [What is composition API?](#what-is-composition-api)                                                                                                           |
 | 231 | [What is the best way to re-render a component?](#what-is-the-best-way-to-re-render-a-component)                                                               |
+| 241 | [How do you integrate a REST API with Vue 3?](#how-do-you-integrate-a-rest-api-with-vue-3)                                                                    |
 
 1.  ### What is VueJS?
     **Vue.js** is an open-source, progressive Javascript framework for building user interfaces that aim to be
@@ -5739,7 +5740,65 @@ access the vm instance.
       ```
 
      **[⬆ Back to Top](#table-of-contents)**
-241. 
+241. ### How do you integrate a REST API with Vue 3?
+
+Put HTTP calls in a small API module, keep loading and error state reactive, and call the module from a component lifecycle hook. For a product page using Axios:
+
+```javascript
+// src/api/products.js
+import axios from 'axios';
+
+const client = axios.create({
+  baseURL: '/api',
+  timeout: 5000,
+  headers: { Accept: 'application/json' }
+});
+
+export function getProducts(signal) {
+  return client.get('/products', { signal });
+}
+```
+
+```vue
+<script setup>
+import { onMounted, onBeforeUnmount, ref } from 'vue';
+import { getProducts } from './api/products';
+
+const products = ref([]);
+const loading = ref(true);
+const error = ref('');
+const controller = new AbortController();
+
+onMounted(async () => {
+  try {
+    const response = await getProducts(controller.signal);
+    products.value = response.data.items;
+  } catch (err) {
+    if (!controller.signal.aborted) {
+      error.value = err.response?.data?.message ?? 'Could not load products.';
+    }
+  } finally {
+    if (!controller.signal.aborted) loading.value = false;
+  }
+});
+
+onBeforeUnmount(() => controller.abort());
+</script>
+
+<template>
+  <p v-if="loading">Loading products...</p>
+  <p v-else-if="error" role="alert">{{ error }}</p>
+  <ul v-else>
+    <li v-for="product in products" :key="product.id">
+      {{ product.name }} — {{ product.price }}
+    </li>
+  </ul>
+</template>
+```
+
+For a real catalog, use the backend's documented response contract (here, `{ items: [...] }`), show actionable errors, and keep authentication, retries, and shared headers in the API client or an interceptor. Never treat a client-side check as a substitute for server-side authorization or validation.
+
+**[⬆ Back to Top](#table-of-contents)**
 
 ---
 
