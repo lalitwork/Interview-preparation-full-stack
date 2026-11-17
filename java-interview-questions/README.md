@@ -74,6 +74,9 @@ Frequently asked Java Interview questions
 | 61 | [What is type erasure in Java generics?](#what-is-type-erasure-in-java-generics) |
 | 62 | [Can you override a private or static method?](#can-you-override-a-private-or-static-method) |
 | 63 | [What are common pitfalls with equals() and hashCode() methods?](#what-are-common-pitfalls-with-equals-and-hashcode-methods) |
+| 64 | [How do you create a REST API with Spring Boot?](#how-do-you-create-a-rest-api-with-spring-boot) |
+| 65 | [How do you validate API requests and return consistent errors in Spring Boot?](#how-do-you-validate-api-requests-and-return-consistent-errors-in-spring-boot) |
+| 66 | [How do you test a Spring Boot REST API?](#how-do-you-test-a-spring-boot-rest-api) |
 <!-- TOC_END -->
 
 <!-- QUESTIONS_START -->
@@ -4697,6 +4700,117 @@ Frequently asked Java Interview questions
 
     **[⬆ Back to Top](#table-of-contents)**
 
+64. ### How do you create a REST API with Spring Boot?
+
+Use `@RestController` to expose JSON endpoints, map HTTP methods to resource operations, and delegate business logic and persistence to a service. For example, a product catalog can expose `GET /api/products` and `POST /api/products`.
+
+```java
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import java.math.BigDecimal;
+import java.net.URI;
+import java.util.List;
+
+record CreateProductRequest(
+    @NotBlank String name,
+    @NotNull @PositiveOrZero BigDecimal price
+) {}
+
+record ProductResponse(Long id, String name, BigDecimal price) {}
+
+@RestController
+@RequestMapping("/api/products")
+class ProductController {
+    private final ProductService productService;
+
+    ProductController(ProductService productService) {
+        this.productService = productService;
+    }
+
+    @GetMapping
+    List<ProductResponse> list() {
+        return productService.findAll();
+    }
+
+    @PostMapping
+    ResponseEntity<ProductResponse> create(
+            @Valid @RequestBody CreateProductRequest request) {
+        ProductResponse created = productService.create(request);
+        return ResponseEntity
+            .created(URI.create("/api/products/" + created.id()))
+            .body(created);
+    }
+}
+```
+
+This example uses Java records and Spring Boot 3+ (`jakarta.validation`). Include `spring-boot-starter-validation` to activate Bean Validation. `ProductService` should apply business rules and persist through a repository; the in-memory or persistence implementation is intentionally outside this controller example. A `201 Created` response with a `Location` header identifies the newly created resource.
+
+    **[⬆ Back to Top](#table-of-contents)**
+
+65. ### How do you validate API requests and return consistent errors in Spring Boot?
+
+Add Bean Validation constraints to request DTOs and annotate request bodies with `@Valid`. Handle domain and validation failures centrally with `@RestControllerAdvice`, so clients receive consistent status codes and error bodies instead of framework stack traces.
+
+```java
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+@RestControllerAdvice
+class ApiExceptionHandler {
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    ProblemDetail handleValidation(MethodArgumentNotValidException exception) {
+        ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problem.setTitle("Request validation failed");
+        problem.setDetail("Check the submitted product fields and try again.");
+        return problem;
+    }
+}
+```
+
+For example, a blank product name or a negative price is rejected before the controller calls the service. Map a missing product to `404`, unauthenticated requests to `401`, and unexpected failures to a generic `500` response; log internal exception details server-side.
+
+    **[⬆ Back to Top](#table-of-contents)**
+
+66. ### How do you test a Spring Boot REST API?
+
+Use `MockMvc` to exercise the HTTP boundary without starting a real server. A focused test can verify that the create endpoint returns `201`, includes a `Location` header, and serializes the expected response.
+
+```java
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+@WebMvcTest(ProductController.class)
+class ProductControllerTest {
+    @Autowired MockMvc mockMvc;
+    @MockitoBean ProductService productService;
+
+    @Test
+    void createsProduct() throws Exception {
+        given(productService.create(any()))
+            .willReturn(new ProductResponse(7L, "Desk lamp", new BigDecimal("24.99")));
+
+        mockMvc.perform(post("/api/products")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {"name":"Desk lamp","price":24.99}
+                    """))
+            .andExpect(status().isCreated())
+            .andExpect(header().string("Location", "/api/products/7"))
+            .andExpect(jsonPath("$.name").value("Desk lamp"));
+    }
+}
+```
+
+`@MockitoBean` is available in Spring Framework 6.2+ (Spring Boot 3.4+). Also test invalid requests and missing resources. Use integration tests with the real database configuration for persistence behavior, and publish an OpenAPI contract so frontend and backend teams can agree on request and response shapes.
+
+    **[⬆ Back to Top](#table-of-contents)**
+
 
 <!-- QUESTIONS_END -->
 
@@ -4704,6 +4818,6 @@ Frequently asked Java Interview questions
 
 ## Folder Description
 
-This folder contains Java interview questions and answers covering core Java concepts, object-oriented programming, collections, exception handling, multithreading, and other Java development topics to help prepare for Java technical interviews.
+This folder contains Java interview questions and answers covering core Java concepts, object-oriented programming, collections, exception handling, multithreading, and Spring Boot REST API development to help prepare for Java technical interviews.
 
 **[⬅ Return to Root README](../README.md)**
