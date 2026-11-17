@@ -70,6 +70,9 @@
 |58 | [How do you handle backpressure in streams?](#how-do-you-handle-backpressure-in-streams) |
 |59 | [What is garbage collection in Node.js?](#what-is-garbage-collection-in-nodejs) |
 |60 | [What are V8 flags and how to use them?](#what-are-v8-flags-and-how-to-use-them) |
+|61 | [How do you create a REST API with Express.js?](#how-do-you-create-a-rest-api-with-expressjs) |
+|62 | [How do you validate API requests and handle errors in Express.js?](#how-do-you-validate-api-requests-and-handle-errors-in-expressjs) |
+|63 | [How do you add pagination and filtering to an API?](#how-do-you-add-pagination-and-filtering-to-an-api) |
 
 ---
 
@@ -4023,6 +4026,140 @@ if (flags.length > 0) {
 // 5. Test with different flag combinations
 // 6. Document flags in package.json scripts
 ```
+
+**[⬆ Back to Top](#table-of-contents)**
+
+### 61. How do you create a REST API with Express.js?
+
+A REST API exposes resources through HTTP methods and predictable URLs. For example, a product catalog can use `GET /api/products` to list products, `GET /api/products/:id` to retrieve one, `POST /api/products` to create one, `PATCH /api/products/:id` to update fields, and `DELETE /api/products/:id` to remove one.
+
+```javascript
+const express = require('express');
+
+const app = express();
+app.use(express.json());
+
+// In production, persist records in a database through a repository/service.
+const products = new Map();
+let nextId = 1;
+
+app.get('/api/products', (req, res) => {
+  res.json([...products.values()]);
+});
+
+app.get('/api/products/:id', (req, res) => {
+  const product = products.get(req.params.id);
+  if (!product) {
+    return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Product not found' } });
+  }
+  return res.json(product);
+});
+
+app.post('/api/products', (req, res) => {
+  const { name, price } = req.body ?? {};
+  if (typeof name !== 'string' || !name.trim() ||
+      typeof price !== 'number' || price < 0) {
+    return res.status(400).json({
+      error: { code: 'VALIDATION_ERROR', message: 'A name and non-negative numeric price are required' }
+    });
+  }
+
+  const product = { id: String(nextId++), name: name.trim(), price };
+  products.set(product.id, product);
+  return res.status(201)
+    .location(`/api/products/${product.id}`)
+    .json(product);
+});
+
+app.patch('/api/products/:id', (req, res) => {
+  const product = products.get(req.params.id);
+  if (!product) {
+    return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Product not found' } });
+  }
+
+  const changes = req.body ?? {};
+  if (Object.hasOwn(changes, 'name') &&
+      (typeof changes.name !== 'string' || !changes.name.trim())) {
+    return res.status(400).json({
+      error: { code: 'VALIDATION_ERROR', message: 'Name must be a non-empty string' }
+    });
+  }
+  if (Object.hasOwn(changes, 'price') &&
+      (typeof changes.price !== 'number' || changes.price < 0)) {
+    return res.status(400).json({
+      error: { code: 'VALIDATION_ERROR', message: 'Price must be a non-negative number' }
+    });
+  }
+
+  const updated = {
+    ...product,
+    ...(Object.hasOwn(changes, 'name') ? { name: changes.name.trim() } : {}),
+    ...(Object.hasOwn(changes, 'price') ? { price: changes.price } : {})
+  };
+  products.set(product.id, updated);
+  return res.json(updated);
+});
+
+app.delete('/api/products/:id', (req, res) => {
+  if (!products.has(req.params.id)) {
+    return res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Product not found' } });
+  }
+  products.delete(req.params.id);
+  return res.status(204).end();
+});
+```
+
+In a production API, keep route handlers thin: move business rules into a service, persistence into a repository, validate all inputs with a schema or DTO, and add authentication, authorization, logging, and tests.
+
+**[⬆ Back to Top](#table-of-contents)**
+
+### 62. How do you validate API requests and handle errors in Express.js?
+
+Validate untrusted input at the API boundary and return a stable error shape. Use `400 Bad Request` for invalid input, `401 Unauthorized` for missing/invalid authentication, `403 Forbidden` when an authenticated caller lacks permission, `404 Not Found` for missing resources, and `500 Internal Server Error` for unexpected failures. Do not send stack traces or internal details to clients.
+
+```javascript
+app.use((err, req, res, next) => {
+  if (res.headersSent) return next(err);
+
+  console.error(err);
+  return res.status(err.statusCode || 500).json({
+    error: {
+      code: err.code || 'INTERNAL_ERROR',
+      message: err.statusCode ? err.message : 'An unexpected error occurred'
+    }
+  });
+});
+```
+
+For example, a `POST /api/orders` endpoint should reject an empty item list or invalid quantities before writing to the database. A schema-validation library can produce field-level messages; pass unexpected errors to the centralized middleware with `next(error)` so every route responds consistently.
+
+**[⬆ Back to Top](#table-of-contents)**
+
+### 63. How do you add pagination and filtering to an API?
+
+Accept bounded query parameters, validate them, and return page metadata alongside the results. For a product catalog, a client might request `/api/products?category=books&page=2&limit=20`.
+
+```javascript
+app.get('/api/products', async (req, res, next) => {
+  try {
+    const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, Number.parseInt(req.query.limit, 10) || 20));
+    const category = typeof req.query.category === 'string' ? req.query.category : undefined;
+
+    const result = await productService.list({ category, page, limit });
+    return res.json({
+      items: result.items,
+      page,
+      limit,
+      total: result.total
+    });
+  } catch (error) {
+    return next(error);
+  }
+});
+```
+
+Apply filtering and pagination in the database rather than loading the full collection into memory. Offset pagination is simple for numbered pages; cursor pagination is usually more stable for large or frequently changing datasets.
 
 **[⬆ Back to Top](#table-of-contents)**
 
