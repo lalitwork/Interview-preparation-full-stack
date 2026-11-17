@@ -5429,37 +5429,58 @@ class ParentComponent extends React.Component {
      ```
      This effect hook can be used to fetch data from an API and to set the data in the local state of the component with the useState hook’s update function.
 
-     Here is an example of fetching a list of ReactJS articles from an API using fetch.
+     A robust client-side request should handle non-2xx responses, loading and error states, and cancellation when the component unmounts or the request becomes obsolete. For example, an article page can request a topic-specific list:
 
      ```javascript
-     import React from "react";
+     import { useEffect, useState } from "react";
 
-     function App() {
-       const [data, setData] = React.useState({ hits: [] });
+     function ArticlesPage() {
+       const [articles, setArticles] = useState([]);
+       const [loading, setLoading] = useState(true);
+       const [error, setError] = useState("");
 
-       React.useEffect(() => {
-         fetch("http://hn.algolia.com/api/v1/search?query=react")
-           .then((response) => response.json())
-           .then((data) => setData(data));
+       useEffect(() => {
+         const controller = new AbortController();
+
+         async function loadArticles() {
+           try {
+             const response = await fetch("/api/articles?topic=react", {
+               signal: controller.signal,
+             });
+             if (!response.ok) {
+               throw new Error(`Request failed (${response.status})`);
+             }
+             const result = await response.json();
+             setArticles(result.items);
+           } catch (err) {
+             if (!controller.signal.aborted) {
+               setError(err instanceof Error ? err.message : "Unable to load articles");
+             }
+           } finally {
+             if (!controller.signal.aborted) setLoading(false);
+           }
+         }
+
+         loadArticles();
+         return () => controller.abort();
        }, []);
+
+       if (loading) return <p>Loading articles...</p>;
+       if (error) return <p role="alert">{error}</p>;
 
        return (
          <ul>
-           {data.hits.map((item) => (
-             <li key={item.objectID}>
-               <a href={item.url}>{item.title}</a>
+           {articles.map((article) => (
+             <li key={article.id}>
+               <a href={article.url}>{article.title}</a>
              </li>
            ))}
          </ul>
        );
      }
-
-     export default App;
      ```
 
-     A popular way to simplify this is by using the library axios.
-
-     We provided an empty array as second argument to the useEffect hook to avoid activating it on component updates. This way, it only fetches on component mount.
+     The empty dependency array runs the effect for this component instance; if the request depends on a changing value, include that value in the dependency array so React refetches correctly. `fetch` does not reject for HTTP error statuses, so check `response.ok`. For applications that need caching, deduplication, retries, or background refetching, prefer a framework data loader or a server-state library rather than reimplementing those features in each component.
 
 **[⬆ Back to Top](#table-of-contents)**
 
