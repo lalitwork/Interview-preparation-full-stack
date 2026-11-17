@@ -3702,21 +3702,23 @@ Because of hoisting, functions can be used before they are declared.
 
 172. ### How do you make asynchronous HTTP request
 
-      Browsers provide an XMLHttpRequest object which can be used to make asynchronous HTTP requests from JavaScript by passing the 3rd parameter as true.
+      `XMLHttpRequest` supports asynchronous requests, but the browser's `fetch()` API is generally the simpler choice for new code. For example, a product page can load one product from a REST endpoint:
 
       ```javascript
-      function httpGetAsync(theUrl, callback) {
-        var xmlHttpReq = new XMLHttpRequest();
-        xmlHttpReq.onreadystatechange = function () {
-          if (xmlHttpReq.readyState == 4 && xmlHttpReq.status == 200)
-            callback(xmlHttpReq.responseText);
-        };
-        xmlHttpReq.open("GET", theUrl, true); // true for asynchronous
-        xmlHttpReq.send(null);
+      async function getProduct(productId) {
+        const response = await fetch(`/api/products/${encodeURIComponent(productId)}`);
+        if (!response.ok) {
+          throw new Error(`Request failed (${response.status})`);
+        }
+        return response.json();
       }
+
+      getProduct("42")
+        .then((product) => renderProduct(product))
+        .catch((error) => showError(error.message));
       ```
 
-      Today this is considered deprecated, because an async `fetch` call (in browsers later than 2016) is simpler and more robust.
+      `fetch()` rejects on network failures but not on HTTP error statuses, so check `response.ok`. For `POST` or `PATCH`, pass a method, JSON `body`, and `Content-Type: application/json` header. Use `AbortController` to cancel requests when a page or component no longer needs them. `XMLHttpRequest` is still supported and may be useful for legacy code or upload-progress events.
 
       **[⬆ Back to Top](#table-of-contents)**
 
