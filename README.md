@@ -15,6 +15,7 @@ This repository aggregates curated learning materials, interview Q&A, coding cha
 | [dirty-hands-with-code](./dirty-hands-with-code/README.md) | Hands-on coding exercises focused on implementation and edge cases |
 | [docker-cheat-sheet](./docker-cheat-sheet/README.md) | Quick reference guide for Docker commands and concepts |
 | [ECMAScript-features](./ECMAScript-features/README.md) | ECMAScript language features across ES2015–ES2025 editions |
+| [fullstack-architect-interview](./fullstack-architect-interview/fullstack-architect-interview.md) | Full-stack architecture interview questions and answers |
 | [java-interview-questions](./java-interview-questions/README.md) | Java interview questions and answers |
 | [javascript-coding-interview](./javascript-coding-interview/README.md) | JavaScript coding interview questions and solutions |
 | [javascript-interview-questions](./javascript-interview-questions/README.md) | JavaScript interview questions with coding exercises |
@@ -24,6 +25,7 @@ This repository aggregates curated learning materials, interview Q&A, coding cha
 | [react-hackernews](./react-hackernews/README.md) | React-based Hacker News clone demo application |
 | [reactjs-interview-questions](./reactjs-interview-questions/README.md) | React interview questions with coding exercises, hooks, and projects |
 | [receipt-extractor](./receipt-extractor/README.md) | Receipt extraction application with backend and frontend components |
+| [scrummaster-management-interview](./scrummaster-management-interview/scrummaster-management-interview.md) | Scrum Master and management interview questions and answers |
 | [system-design-concepts](./system-design-concepts/README.md) | System design concepts and architecture reference |
 | [the-complete-react-interview-guide](./the-complete-react-interview-guide/README.md) | Complete React interview guide organized by chapters |
 | [typescript-coding-interview](./typescript-coding-interview/README.md) | TypeScript coding interview questions and solutions |
