@@ -997,50 +997,61 @@
   **[⬆ Back to Top](#table-of-contents)**
 
 37. ### Explain on how to use `HttpClient` with an example?
-    Below are the steps need to be followed for the usage of `HttpClient`.
-    1. Import `HttpClient` into root module:
-        ```javascript
-        import { HttpClientModule } from '@angular/common/http';
-        @NgModule({
-          imports: [
-            BrowserModule,
-            // import HttpClientModule after BrowserModule.
-            HttpClientModule,
-          ],
-          ......
-          })
-         export class AppModule {}
-        ```
-    2. Inject the `HttpClient` into the application:
-        Let's create a userProfileService(`userprofile.service.ts`) as an example. It also defines get method of `HttpClient`:
-        ```javascript
-        import { Injectable } from '@angular/core';
-        import { HttpClient } from '@angular/common/http';
+    Configure Angular's HTTP provider once, keep endpoint calls in an injectable service, and consume typed Observables from the component. For a modern standalone application:
 
-        const userProfileUrl: string = 'assets/data/profile.json';
+    ```typescript
+    // app.config.ts
+    import { ApplicationConfig } from '@angular/core';
+    import { provideHttpClient } from '@angular/common/http';
 
-        @Injectable()
-        export class UserProfileService {
-          constructor(private http: HttpClient) { }
+    export const appConfig: ApplicationConfig = {
+      providers: [provideHttpClient()]
+    };
+    ```
 
-          getUserProfile() {
-            return this.http.get(this.userProfileUrl);
-          }
+    ```typescript
+    // user-profile.service.ts
+    import { Injectable, inject } from '@angular/core';
+    import { HttpClient } from '@angular/common/http';
+
+    interface UserProfile {
+      id: string;
+      name: string;
+      city: string;
+    }
+
+    @Injectable({ providedIn: 'root' })
+    export class UserProfileService {
+      private readonly http = inject(HttpClient);
+
+      getCurrentUser() {
+        return this.http.get<UserProfile>('/api/users/me');
+      }
+    }
+    ```
+
+    ```typescript
+    // user-profile.component.ts
+    import { Component, inject } from '@angular/core';
+    import { AsyncPipe } from '@angular/common';
+    import { UserProfileService } from './user-profile.service';
+
+    @Component({
+      standalone: true,
+      imports: [AsyncPipe],
+      template: `
+        @if (user$ | async; as user) {
+          <h1>{{ user.name }}</h1>
+          <p>{{ user.city }}</p>
         }
-        ```
-    3. Create a component for subscribing service:
-        Let's create a component called UserProfileComponent(`userprofile.component.ts`), which injects `UserProfileService` and invokes the service method:
-        ```javascript
-        fetchUserProfile() {
-          this.userProfileService.getUserProfile()
-            .subscribe((data: User) => this.user = {
-                id: data['userId'],
-                name: data['firstName'],
-                city:  data['city']
-            });
-        }
-        ```
-    Since the above service method returns an Observable which needs to be subscribed in the component.
+      `
+    })
+    export class UserProfileComponent {
+      readonly user$ = inject(UserProfileService).getCurrentUser();
+    }
+    ```
+
+    The `async` pipe subscribes and unsubscribes with the view lifecycle. Handle request failures with `catchError` in the service or an error-state pattern in the component; use an HTTP interceptor for cross-cutting concerns such as authentication headers. In NgModule-based applications, configure `HttpClientModule` in the root module instead of `provideHttpClient()`.
 
   **[⬆ Back to Top](#table-of-contents)**
 
